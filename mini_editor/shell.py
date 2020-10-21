@@ -7,7 +7,8 @@ def c_compile(data):
         file.write(data)
     if os.path.exists("./a.exe"):
         os.remove("./a.exe")
-    process = subprocess.Popen(["gcc", "tmp.c"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    process = subprocess.Popen(["gcc", "tmp.c"]
+                               , stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     output, error = process.communicate()
     return process.returncode, output, error
 

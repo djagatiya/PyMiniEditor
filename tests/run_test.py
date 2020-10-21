@@ -1,6 +1,6 @@
-from mini_editor.shell import run, compile
+from mini_editor.shell import c_run, c_compile
 
-compile("""
+c_compile("""
 #include<stdio.h>
 #include<conio.h>
 
@@ -11,4 +11,4 @@ int main(){
 	getch();
 }
 """)
-run()
+c_run(["start", "./a.exe"])
