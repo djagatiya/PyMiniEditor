@@ -1,60 +1,43 @@
 import os
 
 from PySide2 import QtWidgets
+from PySide2.QtGui import QFont
+
 from mini_editor.shell import c_compile, c_run
+from mini_editor.high_lighter import HighLighter
 
 
 class Editor(QtWidgets.QWidget):
 
-    def __init__(self):
+    def __init__(self, set_title_function):
         super().__init__()
+        self.set_title_function = set_title_function
 
         l = QtWidgets.QVBoxLayout()
 
-        top_view = QtWidgets.QWidget()
-        top_view_layout = QtWidgets.QHBoxLayout()
-        top_view.setLayout(top_view_layout)
-
-        b1 = QtWidgets.QPushButton("New.")
-        b1.clicked.connect(self.new_fn)
-        b2 = QtWidgets.QPushButton("Open")
-        b2.clicked.connect(self.open_fn)
-        b3 = QtWidgets.QPushButton("Save")
-        b3.clicked.connect(self.save_fn)
-        b4 = QtWidgets.QPushButton("Save As.")
-        b4.clicked.connect(self.save_as_fn)
-        b5 = QtWidgets.QPushButton("Compile")
-        b5.clicked.connect(self.compile_fn)
-        b6 = QtWidgets.QPushButton("Run")
-        b6.clicked.connect(self.run_fn)
-
-        top_view_layout.addWidget(b1)
-        top_view_layout.addWidget(b2)
-        top_view_layout.addWidget(b3)
-        top_view_layout.addWidget(b4)
-        top_view_layout.addWidget(b5)
-        top_view_layout.addWidget(b6)
-        top_view_layout.addStretch()
-
-        l.addWidget(top_view)
-
         self.edit = QtWidgets.QTextEdit()
+        self.edit.setFont(QFont("TypeWriter"))
+        self.edit.setFontPointSize(11)
         l.addWidget(self.edit)
+
+        self.high_lighter = HighLighter(self.edit)
 
         self.logs = QtWidgets.QTextEdit()
         self.logs.setMaximumHeight(200)
+        self.logs.setFontPointSize(9)
         l.addWidget(self.logs)
 
         self.setLayout(l)
         self.current_file = None
+        self.new_fn()
 
     def new_fn(self):
         self.edit.clear()
-        self.setWindowTitle("New.")
+        self.set_title("New.")
         self.current_file = None
 
-    def setWindowTitle(self, arg__1: str):
-        super().setWindowTitle(f"MiniEditor : [{arg__1}]")
+    def set_title(self, arg__1: str):
+        self.set_title_function(f"MiniEditor : [{arg__1}]")
 
     def get_selected_file(self):
         file_dialog = QtWidgets.QFileDialog()
@@ -71,7 +54,7 @@ class Editor(QtWidgets.QWidget):
                 text = open_file.read()
                 self.edit.setText(text)
                 self.current_file = file_path
-                self.setWindowTitle(self.current_file)
+                self.set_title(self.current_file)
 
     def save_fn(self):
         if self.current_file is None:
@@ -84,12 +67,12 @@ class Editor(QtWidgets.QWidget):
         file_path = self.get_selected_file()
         if file_path:
             self.current_file = file_path
-            self.setWindowTitle(self.current_file)
+            self.set_title(self.current_file)
             with open(self.current_file, mode='w') as write_file:
                 write_file.write(self.edit.toPlainText())
 
     def compile_fn(self):
-        returncode, output, error = c_compile(self.edit.toPlainText())
+        return_code, output, error = c_compile(self.edit.toPlainText())
         self.logs.append(error)
         self.logs.append("------------------------------------------")
 
