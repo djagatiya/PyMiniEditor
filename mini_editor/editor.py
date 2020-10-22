@@ -1,134 +1,101 @@
-import tkinter as tk
-from tkinter import ttk
-from mini_editor.shell import c_run, c_compile
-from tkinter import filedialog
-from mini_editor.c_lexer import get_c_lexer
-import json
+import os
+
+from PySide2 import QtWidgets
+from mini_editor.shell import c_compile, c_run
 
 
-class Editor:
+class Editor(QtWidgets.QWidget):
 
-    def __init__(self, master: tk.Tk):
-        master.grid_columnconfigure(0, weight=1)
-        master.grid_rowconfigure(0, weight=0)
-        master.grid_rowconfigure(1, weight=6)
-        master.grid_rowconfigure(2, weight=2)
+    def __init__(self):
+        super().__init__()
 
-        self.master = master
+        l = QtWidgets.QVBoxLayout()
 
-        frame = tk.Frame(master, bg='red')
-        frame.grid(row=0, column=0, sticky='nswe')
+        top_view = QtWidgets.QWidget()
+        top_view_layout = QtWidgets.QHBoxLayout()
+        top_view.setLayout(top_view_layout)
 
-        ttk.Button(frame, text="New", command=self.new_fn).pack(side='left')
-        ttk.Button(frame, text="Open", command=self.open_fn).pack(side='left')
-        ttk.Button(frame, text="Save", command=self.save_fn).pack(side='left')
-        ttk.Button(frame, text="Save As.", command=self.save_as_fn).pack(side='left')
-        ttk.Button(frame, text="Compile", command=self.compile_fn).pack(side='left')
-        ttk.Button(frame, text="Run", command=self.run_fn).pack(side='left')
-        ttk.Button(frame, text="Highlights", command=self.highlights_fn).pack(side='left')
+        b1 = QtWidgets.QPushButton("New.")
+        b1.clicked.connect(self.new_fn)
+        b2 = QtWidgets.QPushButton("Open")
+        b2.clicked.connect(self.open_fn)
+        b3 = QtWidgets.QPushButton("Save")
+        b3.clicked.connect(self.save_fn)
+        b4 = QtWidgets.QPushButton("Save As.")
+        b4.clicked.connect(self.save_as_fn)
+        b5 = QtWidgets.QPushButton("Compile")
+        b5.clicked.connect(self.compile_fn)
+        b6 = QtWidgets.QPushButton("Run")
+        b6.clicked.connect(self.run_fn)
 
-        mid_frame = tk.Frame(master, bg='blue')
-        mid_frame.grid(row=1, column=0, sticky='nswe')
-        mid_frame.pack_propagate(0)
+        top_view_layout.addWidget(b1)
+        top_view_layout.addWidget(b2)
+        top_view_layout.addWidget(b3)
+        top_view_layout.addWidget(b4)
+        top_view_layout.addWidget(b5)
+        top_view_layout.addWidget(b6)
+        top_view_layout.addStretch()
 
-        bottom_frame = tk.Frame(master, bg='green')
-        bottom_frame.grid(row=2, column=0, sticky='nswe')
-        bottom_frame.pack_propagate(0)
+        l.addWidget(top_view)
 
-        self.text = tk.Text(mid_frame, bg='gray99')
-        self.text.pack(fill='both', expand=True)
+        self.edit = QtWidgets.QTextEdit()
+        l.addWidget(self.edit)
 
-        self.mapping = {}
-        with open("themes\\demo_theme.json") as style_file:
-            json_data = json.load(style_file)
-            for data in json_data["styles"]:
-                print(data)
-                name = data.get("lexer_name")
-                if name is not None:
-                    self.text.tag_configure(name, **data['data'])
-                    self.mapping[name] = name
-                else:
-                    print("Lexer name not found:", data)
+        self.logs = QtWidgets.QTextEdit()
+        self.logs.setMaximumHeight(200)
+        l.addWidget(self.logs)
 
-        self.logs = tk.Text(bottom_frame, font=('Helvetica', 10, 'bold'))
-        self.logs.pack(fill='both', expand=True)
-
-        self.file_path = None
-        self.update_title()
-        self.lexer = get_c_lexer()
-
-    def update_title(self):
-        path = "New File." if self.file_path is None else self.file_path
-        self.master.title(f"MiniEditor : [{path}]")
+        self.setLayout(l)
+        self.current_file = None
 
     def new_fn(self):
-        self.file_path = None
-        self.text.delete("1.0", tk.END)
-        self.update_title()
+        self.edit.clear()
+        self.setWindowTitle("New.")
+        self.current_file = None
+
+    def setWindowTitle(self, arg__1: str):
+        super().setWindowTitle(f"MiniEditor : [{arg__1}]")
+
+    def get_selected_file(self):
+        file_dialog = QtWidgets.QFileDialog()
+        file_dialog.setFileMode(QtWidgets.QFileDialog.AnyFile)
+        if file_dialog.exec_():
+            return file_dialog.selectedFiles()[0]
+        return None
 
     def open_fn(self):
-        file = filedialog.askopenfile()
-        data = file.read()
-        file.close()
-        self.file_path = file.name
-        self.text.delete("1.0", tk.END)
-        self.text.insert("1.0", data)
-        self.update_title()
-
-    def get_all_text(self):
-        return self.text.get("1.0", tk.END)
-
-    def save_as_fn(self):
-        file = filedialog.asksaveasfile()
-        file.write(self.get_all_text())
-        file.close()
-        self.file_path = file.name
-        print(self.file_path)
-        self.update_title()
+        print("Open clicked.")
+        file_path = self.get_selected_file()
+        if file_path:
+            with open(file_path, mode='r') as open_file:
+                text = open_file.read()
+                self.edit.setText(text)
+                self.current_file = file_path
+                self.setWindowTitle(self.current_file)
 
     def save_fn(self):
-        if self.file_path is None:
+        if self.current_file is None:
             self.save_as_fn()
         else:
-            with open(self.file_path, mode="w") as out_file:
-                out_file.write(self.get_all_text())
+            with open(self.current_file, mode='w') as write_file:
+                write_file.write(self.edit.toPlainText())
 
-    def run_fn(self):
-        exit_code = self.compile_fn()
-        if exit_code == 0:
-            c_run(["start", "./a.exe"])
-        else:
-            print("Error found..", exit_code)
+    def save_as_fn(self):
+        file_path = self.get_selected_file()
+        if file_path:
+            self.current_file = file_path
+            self.setWindowTitle(self.current_file)
+            with open(self.current_file, mode='w') as write_file:
+                write_file.write(self.edit.toPlainText())
 
     def compile_fn(self):
-        exit_code, out, error = c_compile(self.get_all_text())
-        out_str = f"Exit Code: {exit_code}\n"
-        if exit_code == 0:
-            out_str += "[Success.]\n\n"
-        else:
-            if len(out) > 0:
-                out_str += f"[Out]\n{out}\n"
-            if len(error) > 0:
-                out_str += f"[Error]{error}\n"
-        self.logs.insert("end", out_str)
-        return exit_code
+        returncode, output, error = c_compile(self.edit.toPlainText())
+        self.logs.append(error)
+        self.logs.append("------------------------------------------")
 
-    def highlights_fn(self):
-        self.lexer.input(self.get_all_text())
-        while True:
-            tok = self.lexer.token()
-            if not tok:
-                break
-            self.apply_highlight(tok)
-
-    def apply_highlight(self, tok):
-        pos = tok.lexpos
-        token_len = len(tok.value)
-        token_type = tok.type
-        pos_args = [f"1.0+{pos}c", f"1.0+{pos + token_len}c"]
-        tag_name = self.mapping.get(token_type)
-        if tag_name is not None:
-            print(tag_name, tok)
-            self.text.tag_add(tag_name, *pos_args)
+    def run_fn(self):
+        print("run.")
+        if os.path.exists("./a.exe"):
+            c_run(["start", "./a.exe"])
         else:
-            print("unable to find style tag_name:", tok)
+            print("Unable to find a.exe, please compile first.")
