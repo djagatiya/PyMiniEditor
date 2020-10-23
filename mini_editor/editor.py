@@ -78,7 +78,7 @@ class Editor(QtWidgets.QWidget):
 
     def run_fn(self):
         print("run.")
-        if os.path.exists("./a.exe"):
-            c_run(["start", "./a.exe"])
+        if os.path.exists("a.exe"):
+            c_run(["start", "a.exe"])
         else:
             print("Unable to find a.exe, please compile first.")
