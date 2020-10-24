@@ -19,6 +19,7 @@ class Editor(QtWidgets.QWidget):
         edit_font = QFont()
         edit_font.setFamily('Courier')
         edit_font.setPointSizeF(11)
+        self.edit.setStyleSheet("background-color: black; color:white;")
         self.edit.setFont(edit_font)
         l.addWidget(self.edit)
 

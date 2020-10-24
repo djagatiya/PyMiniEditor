@@ -18,22 +18,32 @@ class HighLighter(QSyntaxHighlighter):
         bracket_format = QtGui.QTextCharFormat()
         bracket_format.setForeground(QtGui.QBrush(QColor("#07689f")))
 
+        digit_format = QtGui.QTextCharFormat()
+        digit_format.setForeground(QtGui.QBrush(QColor("orange")))
+        digit_format.setFontWeight(QFont.Bold)
+
         single_line_comment = QtGui.QTextCharFormat()
-        single_line_comment.setForeground(QtGui.QBrush(QColor("#99A3A4")))
+        single_line_comment.setForeground(QtGui.QBrush(QColor("green")))
 
         include_format = QtGui.QTextCharFormat()
         include_format.setForeground(QtGui.QBrush(QColor("darkred")))
         include_format.setFontWeight(QFont.Bold)
 
         string_format = QtGui.QTextCharFormat()
-        string_format.setForeground(QtGui.QBrush(QColor("darkred")))
+        string_format.setForeground(QtGui.QBrush(QColor("red")))
 
         key_words = QtGui.QTextCharFormat()
         key_words.setForeground(QtGui.QBrush(QColor("blue")))
         key_words.setFontWeight(QFont.Bold)
 
-        self.formats.append([bracket_format, re.compile("[\\[\\](){}]")])
-        self.formats.append([key_words, re.compile("\\b(void|byte|char|int|float|long|double|while)\\b")])
+        self.formats.append([bracket_format, re.compile("[\\[\\](){};]")])
+        self.formats.append([digit_format, re.compile("[0-9]")])
+        self.formats.append([key_words, re.compile("\\b(auto|break|case|char|const|"
+                                                   "continue|default|do|double|"
+                                                   "else|enum|extern|float|for|goto|"
+                                                   "if|int|long|register|return|short|"
+                                                   "signed|sizeof|static|struct|switch|"
+                                                   "typedef|union|unsigned|void|volatile|while)\\b")])
         self.formats.append([include_format, re.compile("^#include<.*>")])
         self.formats.append([string_format, re.compile("\".*\"")])
         self.formats.append([single_line_comment, re.compile("//.*")])
