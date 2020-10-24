@@ -1,6 +1,6 @@
 import os
 
-from PySide2 import QtWidgets
+from PySide2 import QtWidgets, QtGui
 from PySide2.QtGui import QFont
 
 from mini_editor.shell import c_compile, c_run
@@ -16,15 +16,20 @@ class Editor(QtWidgets.QWidget):
         l = QtWidgets.QVBoxLayout()
 
         self.edit = QtWidgets.QTextEdit()
-        self.edit.setFont(QFont("TypeWriter"))
-        self.edit.setFontPointSize(11)
+        edit_font = QFont()
+        edit_font.setFamily('Courier')
+        edit_font.setPointSizeF(11)
+        self.edit.setFont(edit_font)
         l.addWidget(self.edit)
 
         self.high_lighter = HighLighter(self.edit)
 
         self.logs = QtWidgets.QTextEdit()
+        log_font = QFont()
+        log_font.setFamily('Helvetica')
+        log_font.setPointSizeF(10)
+        self.logs.setFont(log_font)
         self.logs.setMaximumHeight(200)
-        self.logs.setFontPointSize(9)
         l.addWidget(self.logs)
 
         self.setLayout(l)
@@ -72,9 +77,11 @@ class Editor(QtWidgets.QWidget):
                 write_file.write(self.edit.toPlainText())
 
     def compile_fn(self):
+        self.logs.append("[Compilation] ......")
         return_code, output, error = c_compile(self.edit.toPlainText())
+        self.logs.append(f"Return code:{return_code}")
         self.logs.append(error)
-        self.logs.append("------------------------------------------")
+        self.logs.moveCursor(QtGui.QTextCursor.End)
 
     def run_fn(self):
         print("run.")

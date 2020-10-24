@@ -39,7 +39,7 @@ class HighLighter(QSyntaxHighlighter):
         self.formats.append([single_line_comment, re.compile("//.*")])
 
     def highlightBlock(self, text):
-        print(f"Text=[{text}]")
+        # print(f"Text=[{text}]")
         for format, regex in self.formats:
             for matched in regex.finditer(text):
                 start, end = matched.span()

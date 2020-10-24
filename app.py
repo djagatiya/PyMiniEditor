@@ -51,7 +51,6 @@ if __name__ == "__main__":
     option_menu.addAction(compile_action)
     option_menu.addAction(run_action)
 
-    window.setWindowTitle("New.")
     window.resize(800, 500)
     window.show()
 
